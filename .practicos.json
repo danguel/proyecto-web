@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "practicos": {
+    "Proyecto final - Programación Web II.pdf": {
+      "estado": "pendiente",
+      "notas": "",
+      "resaltados": [],
+      "progreso": {
+        "paginaMaxima": 1,
+        "totalPaginas": 5
+      }
+    }
+  }
+}

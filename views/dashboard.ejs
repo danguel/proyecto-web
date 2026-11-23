@@ -1,0 +1,198 @@
+<%#
+    dashboard.ejs  -  Panel principal (Adaptativo para Profesional, Admin y Tutor)
+-%>
+<%- include('parciales/_arriba', { titulo: 'Panel', pagina: 'Inicio' }) %>
+
+<% if (esTutor) { %>
+    <%# ==================================================================== %>
+    <%# VISTA ESPECIAL PARA TUTORES Y FAMILIAS %>
+    <%# ==================================================================== %>
+    <header class="encabezado-pagina">
+        <div>
+            <h1 class="titulo-pagina">Portal de Familias y Tutores</h1>
+            <p class="subtitulo-pagina">Bienvenido/a, <%= usuario.nombre %>. Consultá el seguimiento y los informes psicopedagógicos de tu hijo/a.</p>
+        </div>
+    </header>
+
+    <% if (hijos.length === 0) { %>
+        <article class="tarjeta">
+            <header class="tarjeta-cabecera">
+                <div>
+                    <h2 class="tarjeta-titulo">Sin pacientes asociados</h2>
+                    <p class="tarjeta-sub">No se registran pacientes vinculados a tu cuenta de tutor actualmente.</p>
+                </div>
+            </header>
+            <div class="tarjeta-cuerpo">
+                <p>Comunicate con la administración del centro para vincular la ficha clínica de tu hijo/a.</p>
+            </div>
+        </article>
+    <% } else { %>
+        <% for (const hijo of hijos) { %>
+            <article class="tarjeta" style="margin-bottom: 2rem;">
+                <header class="tarjeta-cabecera">
+                    <div>
+                        <h2 class="tarjeta-titulo">Ficha de <%= hijo.nombre %></h2>
+                        <p class="tarjeta-sub">Datos clínicos registrados en el centro</p>
+                    </div>
+                    <div>
+                        <a class="btn btn--primario" href="/historial/descargar-pdf?nombre=<%= encodeURIComponent(hijo.nombre) %>">
+                            Descargar Informe PDF
+                        </a>
+                    </div>
+                </header>
+                <div class="tarjeta-cuerpo">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+                        <div>
+                            <span class="indicador-etiqueta">Edad registrada</span>
+                            <p style="font-size: 1.15rem; font-weight: 600; margin: 0.25rem 0 0;"><%= hijo.edad_anios %> años y <%= hijo.edad_meses %> meses</p>
+                        </div>
+                        <div>
+                            <span class="indicador-etiqueta">Fecha de nacimiento</span>
+                            <p style="font-size: 1.15rem; font-weight: 600; margin: 0.25rem 0 0;"><%= hijo.fecha_nacimiento || 'No registrada' %></p>
+                        </div>
+                        <div>
+                            <span class="indicador-etiqueta">Profesional a cargo</span>
+                            <p style="font-size: 1.15rem; font-weight: 600; margin: 0.25rem 0 0;"><%= hijo.profesional_nombre %></p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        <% } %>
+
+        <article class="tarjeta">
+            <header class="tarjeta-cabecera">
+                <div>
+                    <h2 class="tarjeta-titulo">Evaluaciones e intervenciones realizadas</h2>
+                    <p class="tarjeta-sub">Historial evolutivo cargado por el equipo psicopedagógico</p>
+                </div>
+            </header>
+            <div class="tarjeta-cuerpo tarjeta-cuerpo--sin-relleno">
+                <div class="tabla-scroll">
+                    <table class="tabla tabla--ancha">
+                        <thead>
+                            <tr>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Paciente</th>
+                                <th scope="col">Motivo de consulta</th>
+                                <th scope="col">Desarrollo del lenguaje</th>
+                                <th scope="col">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (evaluacionesHijos.length === 0) { %>
+                                <tr class="fila-vacia">
+                                    <td colspan="5">Todavía no hay evaluaciones registradas para tu hijo/a.</td>
+                                </tr>
+                            <% } %>
+                            <% for (const ev of evaluacionesHijos) { %>
+                                <tr>
+                                    <td><%= ev.fecha %></td>
+                                    <td class="celda-texto"><strong><%= ev.paciente_nombre %></strong></td>
+                                    <td class="celda-texto"><%= ev.motivo_consulta || 'Sin especificar' %></td>
+                                    <td class="celda-texto"><%= ev.desarrollo_lenguaje || 'Sin registrar' %></td>
+                                    <td class="celda-texto"><%= ev.observaciones || 'Sin observaciones' %></td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+    <% } %>
+
+<% } else { %>
+    <%# ==================================================================== %>
+    <%# VISTA GENERAL PARA ADMINISTRADORES Y PROFESIONALES %>
+    <%# ==================================================================== %>
+    <header class="encabezado-pagina">
+        <div>
+            <h1 class="titulo-pagina">Panel</h1>
+            <p class="subtitulo-pagina">Bienvenido/a, <%= usuario.nombre %>. Estos son los números reales del centro.</p>
+        </div>
+    </header>
+
+    <div class="grilla-indicadores">
+        <article class="indicador">
+            <span class="indicador-editorial">01</span>
+            <span class="indicador-etiqueta">Evaluaciones</span>
+            <span class="indicador-valor"><%= resumen.totalEvaluaciones %></span>
+            <span class="indicador-nota"><%= usuario.rol === 'administrador' ? 'Del centro completo' : 'Cargadas por vos' %></span>
+        </article>
+        <article class="indicador">
+            <span class="indicador-editorial">02</span>
+            <span class="indicador-etiqueta">Pacientes atendidos</span>
+            <span class="indicador-valor"><%= resumen.pacientesAtendidos %></span>
+            <span class="indicador-nota"><%= usuario.rol === 'administrador' ? 'Del centro completo' : 'Registrados por vos' %></span>
+        </article>
+        <article class="indicador">
+            <span class="indicador-editorial">03</span>
+            <span class="indicador-etiqueta">Franja etaria más frecuente</span>
+            <span class="indicador-valor"><%= resumen.rangoFrecuente %></span>
+            <span class="indicador-nota">Según edad al momento de la evaluación</span>
+        </article>
+    </div>
+
+    <article class="tarjeta">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Accesos rápidos</h2>
+                <p class="tarjeta-sub">Lo que más se usa, a un clic</p>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo">
+            <div class="acciones-pagina">
+                <% if (rolInfo.secciones.includes('Nueva Evaluación')) { %>
+                    <button type="button" class="btn btn--primario" id="btn-abrir-modal-evaluacion">Nueva evaluación</button>
+                <% } %>
+                <% if (rolInfo.secciones.includes('Historial')) { %>
+                    <a class="btn btn--secundario" href="/historial">Ver historial</a>
+                <% } %>
+                <% if (rolInfo.secciones.includes('Estadísticas')) { %>
+                    <a class="btn btn--secundario" href="/estadisticas">Ver estadísticas</a>
+                <% } %>
+            </div>
+        </div>
+    </article>
+
+    <% if (rolInfo.secciones.includes('Nueva Evaluación')) { %>
+        <%- include('parciales/_modal-evaluacion') %>
+    <% } %>
+
+    <article class="tarjeta">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Últimas evaluaciones</h2>
+                <p class="tarjeta-sub"><%= usuario.rol === 'administrador' ? 'Las 5 más recientes del centro' : 'Tus 5 evaluaciones más recientes' %></p>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo tarjeta-cuerpo--sin-relleno">
+            <div class="tabla-scroll">
+                <table class="tabla tabla--ancha">
+                    <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Paciente</th>
+                            <th scope="col">Desarrollo del lenguaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (ultimas.length === 0) { %>
+                            <tr class="fila-vacia">
+                                <td colspan="3">Todavía no hay evaluaciones cargadas.</td>
+                            </tr>
+                        <% } %>
+                        <% for (const fila of ultimas) { %>
+                            <tr>
+                                <td><%= fila.fecha %></td>
+                                <td class="celda-texto"><%= fila.paciente %></td>
+                                <td class="celda-texto"><%= fila.desarrollo_lenguaje || 'Sin registrar' %></td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </article>
+<% } %>
+
+<%- include('parciales/_abajo') %>

@@ -1,0 +1,65 @@
+<%#
+    login.ejs  -  Pantalla de ingreso
+-%>
+<!DOCTYPE html>
+<html lang="es" data-botones="<%= config.botones %>" data-menu="<%= config.menu %>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ingresar · Centro Psicopedagógico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>:root { --acento: <%= config.acentoHex %>; }</style>
+</head>
+<body>
+    <main class="acceso">
+        <div class="acceso-caja">
+            <div class="acceso-marca">
+                <span class="marca-icono" aria-hidden="true">CP</span>
+                <div>
+                    <h1 class="acceso-titulo">Centro de Atención Psicopedagógica</h1>
+                    <p class="acceso-sub">Ingresá con tu usuario y contraseña</p>
+                </div>
+            </div>
+
+            <% if (error) { %>
+                <div class="aviso aviso--error" role="alert">
+                    <div>
+                        <strong class="aviso-titulo">No se pudo ingresar</strong>
+                        <p><%= error %></p>
+                    </div>
+                </div>
+            <% } %>
+
+            <%# [FASE 2 y 4 - FORMULARIO LOGIN]: Dispara la autenticación hacia POST /login contra la BBDD -%>
+            <form action="/login" method="post" class="formulario" novalidate>
+                <div class="campo">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+                </div>
+
+                <div class="campo">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" autocomplete="current-password" required>
+                </div>
+
+                <%# [FASE 4 - BOTÓN INGRESAR]: Envía username y password a app.js -%>
+                <button class="btn btn--primario" type="submit">Ingresar</button>
+            </form>
+
+            <div class="ayuda-tutor-acceso" role="note">
+                <svg style="width: 18px; height: 18px; stroke: var(--pr-sage-dark); fill: none; stroke-width: 2; flex-shrink: 0; margin-top: 1px;" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>¿Sos familia o tutor?</strong> Ingresá tu número de DNI tanto en el usuario como en la contraseña inicial.</p>
+            </div>
+
+            <p class="acceso-pie">Sistema de gestión de evaluaciones</p>
+        </div>
+    </main>
+    <!-- GSAP & ScrollTrigger: Coreografía y Movimiento Calmo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="/js/animaciones.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<%#
+    _modal-evaluacion.ejs  -  Ventana flotante / Wizard asistido para registrar evaluaciones
+-%>
+<dialog id="modal-evaluacion" class="modal-flotante" aria-labelledby="modal-eval-titulo">
+    <div class="modal-contenido">
+        <header class="modal-cabecera">
+            <div>
+                <span class="indicador-editorial" id="modal-paso-contador">Paso 01 de 03</span>
+                <h2 class="modal-titulo" id="modal-eval-titulo">Nueva evaluación clínica</h2>
+            </div>
+            <button type="button" class="btn-cerrar-modal" id="btn-cerrar-modal" aria-label="Cerrar ventana">✕</button>
+        </header>
+
+        <div class="pasos-progreso">
+            <div class="paso-item activo" data-paso="1">
+                <span class="paso-num">01</span>
+                <span class="paso-nombre">Paciente</span>
+            </div>
+            <div class="paso-divisor"></div>
+            <div class="paso-item" data-paso="2">
+                <span class="paso-num">02</span>
+                <span class="paso-nombre">Desarrollo</span>
+            </div>
+            <div class="paso-divisor"></div>
+            <div class="paso-item" data-paso="3">
+                <span class="paso-num">03</span>
+                <span class="paso-nombre">Observaciones</span>
+            </div>
+        </div>
+
+        <form action="/evaluaciones/nueva" method="post" enctype="multipart/form-data" id="form-modal-evaluacion" class="formulario">
+            <!-- PASO 1: Datos del paciente y tutor -->
+            <div class="seccion-paso activa" id="modal-paso-1">
+                <div class="grilla-campos">
+                    <fieldset class="campo campo--ancho campo--fieldset">
+                        <legend class="campo-etiqueta">Tipo de registro del paciente *</legend>
+                        <div class="selector-segmentado" role="radiogroup" aria-label="Tipo de registro del paciente">
+                            <label>
+                                <input type="radio" name="paciente_modo" value="existente" <%= (pacientes && pacientes.length > 0) ? 'checked' : '' %>>
+                                <span>👤 Paciente registrado</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="paciente_modo" value="nuevo" <%= (!pacientes || pacientes.length === 0) ? 'checked' : '' %>>
+                                <span>➕ Registrar nuevo paciente</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- Bloque: Paciente Existente en Modal -->
+                    <div id="modal-bloque-paciente-existente" class="campo campo--ancho" style="<%= (!pacientes || pacientes.length === 0) ? 'display: none;' : '' %>">
+                        <label for="modal_paciente_id">Paciente registrado *</label>
+                        <select id="modal_paciente_id" name="paciente_id">
+                            <option value="">Seleccioná un paciente de la lista...</option>
+                            <% (pacientes || []).forEach(p => { %>
+                                <option value="<%= p.id %>"
+                                        data-nacimiento="<%= p.fecha_nacimiento %>"
+                                        data-tutor="<%= p.tutor_nombre || 'Sin tutor asignado' %>">
+                                    <%= p.nombre %> <%= p.tutor_nombre ? '(Tutor: ' + p.tutor_nombre + ')' : '(Sin tutor)' %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        <p id="modal-ficha-paciente-existente" class="campo-ayuda" style="margin-top: var(--esp-2); display: none;"></p>
+                    </div>
+
+                    <!-- Bloque: Nuevo Paciente en Modal -->
+                    <div id="modal-bloque-paciente-nuevo" class="campo--ancho" style="<%= (pacientes && pacientes.length > 0) ? 'display: none;' : '' %> width: 100%;">
+                        <div class="grilla-campos" style="grid-column: 1 / -1;">
+                            <div class="campo campo--ancho">
+                                <label for="modal_nombre_paciente">Nombre y apellido del nuevo paciente *</label>
+                                <input type="text" id="modal_nombre_paciente" name="nombre_paciente" autocomplete="off"
+                                       pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$"
+                                       title="Solo se permiten letras y espacios (sin números)"
+                                       maxlength="100" placeholder="Ej: Mateo Gómez">
+                            </div>
+                            <div class="campo">
+                                <label for="modal_fecha_nacimiento">Fecha de nacimiento *</label>
+                                <input type="date" id="modal_fecha_nacimiento" name="fecha_nacimiento" max="<%= hoy %>">
+                            </div>
+
+                            <div class="campo campo--ancho" style="border-top: 1px dashed var(--linea); padding-top: var(--esp-3); margin-top: var(--esp-2);">
+                                <label for="modal_tutor_modo">Vinculación familiar / Tutor</label>
+                                <select id="modal_tutor_modo" name="tutor_modo">
+                                    <option value="sin_tutor">Sin tutor asignado por ahora</option>
+                                    <option value="existente">Asignar tutor registrado en el sistema...</option>
+                                    <option value="crear">+ Crear nueva cuenta para el tutor (DNI como clave)</option>
+                                </select>
+                            </div>
+
+                            <div id="modal-bloque-tutor-existente" class="campo campo--ancho" style="display: none;">
+                                <label for="modal_tutor_id">Seleccionar tutor</label>
+                                <select id="modal_tutor_id" name="tutor_id">
+                                    <option value="">Seleccionar tutor registrado...</option>
+                                    <% (tutores || []).forEach(t => { %>
+                                        <option value="<%= t.id %>"><%= t.nombre %> (DNI / Usuario: <%= t.username %>)</option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div id="modal-bloque-tutor-crear" class="campo campo--ancho" style="display: none;">
+                                <div class="grilla-campos">
+                                    <div class="campo">
+                                        <label for="modal_nuevo_tutor_nombre">Nombre completo del tutor *</label>
+                                        <input type="text" id="modal_nuevo_tutor_nombre" name="nuevo_tutor_nombre" autocomplete="off"
+                                               pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$"
+                                               placeholder="Ej: Laura Gómez">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="modal_nuevo_tutor_dni">DNI del tutor (7 u 8 números) *</label>
+                                        <input type="text" id="modal_nuevo_tutor_dni" name="nuevo_tutor_dni" autocomplete="off"
+                                               pattern="^\d{7,8}$" maxlength="8"
+                                               placeholder="Ej: 38456123">
+                                        <p class="campo-ayuda">El DNI será su usuario y contraseña inicial para el portal familiar.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Común: Fecha de evaluación y Edad calculada -->
+                    <div class="campo">
+                        <label for="modal_fecha">Fecha de evaluación *</label>
+                        <input type="date" id="modal_fecha" name="fecha" max="<%= hoy %>" value="<%= hoy %>" required>
+                    </div>
+                    <div class="campo">
+                        <label>Edad cronológica calculada</label>
+                        <div class="caja-edad-calculada">
+                            <span class="icono-edad">✦</span>
+                            <span id="modal_edad_calculada" class="valor-edad placeholder-edad">Completá la fecha de nacimiento y la de evaluación</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASO 2: Desarrollo y hábitos -->
+            <div class="seccion-paso" id="modal-paso-2">
+                <div class="grilla-campos">
+                    <div class="campo campo--ancho">
+                        <label for="modal_motivo_consulta">Motivo inicial de consulta</label>
+                        <textarea id="modal_motivo_consulta" name="motivo_consulta" rows="3" placeholder="Describí por qué consulta la familia..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="modal_desarrollo_lenguaje">Desarrollo del lenguaje</label>
+                        <select id="modal_desarrollo_lenguaje" name="desarrollo_lenguaje">
+                            <option value="">Seleccionar una opción...</option>
+                            <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.lenguaje && opcionesClinicas.lenguaje.length > 0) { %>
+                                <% opcionesClinicas.lenguaje.forEach(opt => { %>
+                                    <option value="<%= opt.nombre %>"><%= opt.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="Bajo">Bajo</option>
+                                <option value="Por encima del promedio">Por encima del promedio</option>
+                                <option value="Óptimo">Óptimo</option>
+                                <option value="Avanzado para la edad">Avanzado para la edad</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="modal_desarrollo_motor">Desarrollo motor</label>
+                        <textarea id="modal_desarrollo_motor" name="desarrollo_motor" rows="3" placeholder="Prensión del lápiz, tono muscular, coordinación..."></textarea>
+                    </div>
+                    <div class="campo">
+                        <label for="modal_alimentacion">Alimentación</label>
+                        <select id="modal_alimentacion" name="alimentacion">
+                            <option value="">Seleccionar una opción...</option>
+                            <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.alimentacion && opcionesClinicas.alimentacion.length > 0) { %>
+                                <% opcionesClinicas.alimentacion.forEach(opt => { %>
+                                    <option value="<%= opt.nombre %>"><%= opt.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="A considerar">A considerar</option>
+                                <option value="Aceptable">Aceptable</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="modal_sueno">Sueño</label>
+                        <select id="modal_sueno" name="sueno">
+                            <option value="">Seleccionar una opción...</option>
+                            <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.sueno && opcionesClinicas.sueno.length > 0) { %>
+                                <% opcionesClinicas.sueno.forEach(opt => { %>
+                                    <option value="<%= opt.nombre %>"><%= opt.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="Escaso">Escaso</option>
+                                <option value="Interrumpido">Interrumpido</option>
+                                <option value="Aceptable">Aceptable</option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASO 3: Juego, tiempo libre y producciones -->
+            <div class="seccion-paso" id="modal-paso-3">
+                <div class="grilla-campos">
+                    <div class="campo campo--ancho">
+                        <label for="modal_tiempo_libre">Tiempo libre</label>
+                        <textarea id="modal_tiempo_libre" name="tiempo_libre" rows="3" placeholder="Actividades recreativas, uso de pantallas, deportes..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="modal_juego">Conducta lúdica y juego</label>
+                        <textarea id="modal_juego" name="juego" rows="3" placeholder="Juego simbólico, reglado, tolerancia a la frustración..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="modal_observaciones">Observaciones generales</label>
+                        <textarea id="modal_observaciones" name="observaciones" rows="3" placeholder="Conclusiones o sugerencias pedagógicas..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="modal_imagenes">Producciones del paciente (imágenes)</label>
+                        <input type="file" id="modal_imagenes" name="imagenes" accept="image/*" multiple>
+                        <p class="campo-ayuda">Podés adjuntar fotos de cuadernos, dibujos o producciones.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-pie">
+                <button type="button" class="btn btn--secundario" id="btn-paso-anterior" style="display: none;">Anterior</button>
+                <div style="margin-left: auto; display: flex; gap: var(--esp-2);">
+                    <button type="button" class="btn btn--secundario" id="btn-cancelar-modal">Cancelar</button>
+                    <button type="button" class="btn btn--primario" id="btn-paso-siguiente">Siguiente</button>
+                    <button type="submit" class="btn btn--primario" id="btn-guardar-modal" style="display: none;">Guardar evaluación</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</dialog>
+<script src="/js/validador-en-vivo.js" defer></script>
+<script src="/js/modal-evaluacion.js" defer></script>

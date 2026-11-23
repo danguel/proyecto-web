@@ -1,0 +1,152 @@
+<%#
+    admin-catalogos.ejs  -  Gestión de Catálogos Clínicos (Solo Administrador)
+    Permite modificar las opciones paramétricas de Lenguaje, Alimentación y Sueño.
+-%>
+<%- include('parciales/_arriba', { titulo: 'Catálogos Clínicos', pagina: 'Catálogos' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Catálogos clínicos</h1>
+        <p class="subtitulo-pagina">Administrá las opciones de los menús desplegables para evaluaciones psicopedagógicas.</p>
+    </div>
+</header>
+
+<% if (ok === 'creado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Opción clínica agregada correctamente al catálogo.</p></div>
+<% } %>
+<% if (ok === 'estado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Estado de la opción actualizado correctamente.</p></div>
+<% } %>
+<% if (ok === 'eliminado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Opción eliminada del catálogo.</p></div>
+<% } %>
+
+<% if (error === 'datos') { %>
+    <div class="aviso aviso--error" role="alert"><p>Completá todos los datos. El nombre debe tener al menos 2 caracteres.</p></div>
+<% } %>
+<% if (error === 'duplicado') { %>
+    <div class="aviso aviso--error" role="alert"><p>Ya existe una opción con ese nombre en esta categoría.</p></div>
+<% } %>
+<% if (error === 'fallo') { %>
+    <div class="aviso aviso--error" role="alert"><p>No se pudo completar la operación solicitada.</p></div>
+<% } %>
+
+<!-- Formulario de Alta de Opción -->
+<article class="tarjeta" id="alta" style="margin-bottom: var(--esp-5);">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Agregar nueva opción paramétrica</h2>
+            <p class="tarjeta-sub">La opción estará inmediatamente disponible en los formularios de evaluación</p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <form action="/admin/catalogos" method="post" class="formulario">
+            <div class="grilla-campos">
+                <div class="campo">
+                    <label for="categoria">Categoría clínica *</label>
+                    <select id="categoria" name="categoria" required>
+                        <option value="lenguaje">Desarrollo del Lenguaje</option>
+                        <option value="alimentacion">Alimentación</option>
+                        <option value="sueno">Sueño y Descanso</option>
+                    </select>
+                </div>
+                <div class="campo campo--ancho">
+                    <label for="nombre">Nombre de la opción *</label>
+                    <input type="text" id="nombre" name="nombre" autocomplete="off" required
+                           maxlength="80" placeholder="Ej: Requiere evaluación fonoaudiológica">
+                </div>
+                <div class="campo">
+                    <label for="orden">Orden de aparición</label>
+                    <input type="number" id="orden" name="orden" value="5" min="0" max="99">
+                </div>
+            </div>
+            <div class="acciones-formulario" style="margin-top: var(--esp-4);">
+                <button type="submit" class="btn btn--primario">+ Agregar al catálogo</button>
+            </div>
+        </form>
+    </div>
+</article>
+
+<!-- Listado de Opciones Paramétricas por Categoría -->
+<article class="tarjeta" id="listado">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Catálogos activos en el sistema</h2>
+            <p class="tarjeta-sub">Podés habilitar, pausar o eliminar opciones sin alterar los registros históricos</p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo" style="padding: 0;">
+        <%
+            const categoriasInfo = [
+                { id: 'lenguaje', nombre: 'Desarrollo del Lenguaje', icono: '<svg style="width: 16px; height: 16px; stroke: var(--acento); fill: none; stroke-width: 2;" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' },
+                { id: 'alimentacion', nombre: 'Alimentación', icono: '<svg style="width: 16px; height: 16px; stroke: var(--acento); fill: none; stroke-width: 2;" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>' },
+                { id: 'sueno', nombre: 'Sueño y Descanso', icono: '<svg style="width: 16px; height: 16px; stroke: var(--acento); fill: none; stroke-width: 2;" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' }
+            ];
+        %>
+
+        <% categoriasInfo.forEach(cat => { %>
+            <% const itemsCat = (lista || []).filter(item => item.categoria === cat.id); %>
+            <div style="padding: var(--esp-4) var(--esp-5); border-bottom: 1px solid var(--linea); background-color: var(--superficie-2);">
+                <strong style="display: flex; align-items: center; gap: var(--esp-2); font-size: 1rem; color: var(--tinta);">
+                    <span style="display: flex; align-items: center;"><%- cat.icono %></span>
+                    <span><%= cat.nombre %></span>
+                    <span class="indicador" style="font-size: .75rem; padding: 2px 8px;"><%= itemsCat.length %> opciones</span>
+                </strong>
+            </div>
+
+            <div class="tabla-contenedor" style="margin-bottom: var(--esp-4);">
+                <table class="tabla" style="margin-bottom: 0;">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Orden</th>
+                            <th>Nombre de la opción</th>
+                            <th style="width: 140px;">Estado</th>
+                            <th style="width: 220px; text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (itemsCat.length === 0) { %>
+                            <tr>
+                                <td colspan="4" class="tabla-vacia">No hay opciones registradas en esta categoría.</td>
+                            </tr>
+                        <% } else { %>
+                            <% itemsCat.forEach(item => { %>
+                                <tr>
+                                    <td class="celda-corta" style="font-weight: 600; color: var(--acento);"><%= item.orden %></td>
+                                    <td>
+                                        <strong><%= item.nombre %></strong>
+                                    </td>
+                                    <td>
+                                        <% if (item.activo === 1) { %>
+                                            <span class="estado estado--activo" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-chico); background-color: rgba(110, 139, 123, 0.15); color: var(--bosque); font-size: .8rem; font-weight: 600;">
+                                                ● Activo
+                                            </span>
+                                        <% } else { %>
+                                            <span class="estado estado--inactivo" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-chico); background-color: rgba(68, 64, 60, 0.12); color: var(--tinta-3); font-size: .8rem; font-weight: 500;">
+                                                ○ Deshabilitado
+                                            </span>
+                                        <% } %>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div style="display: inline-flex; gap: var(--esp-2); align-items: center;">
+                                            <form action="/admin/catalogos/<%= item.id %>/toggle" method="post" style="display: inline;">
+                                                <button type="submit" class="btn btn--secundario btn--chico" title="<%= item.activo === 1 ? 'Deshabilitar de los formularios' : 'Habilitar en los formularios' %>">
+                                                    <%= item.activo === 1 ? 'Pausar' : 'Activar' %>
+                                                </button>
+                                            </form>
+                                            <form action="/admin/catalogos/<%= item.id %>/eliminar" method="post" style="display: inline;" data-confirmar="¿Seguro que querés eliminar la opción &quot;<%= item.nombre %>&quot;?" data-confirmar-titulo="Eliminar opción clínica">
+                                                <button type="submit" class="btn btn--peligro btn--chico">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        <% }) %>
+    </div>
+</article>
+
+<%- include('parciales/_abajo') %>

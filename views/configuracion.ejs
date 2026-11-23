@@ -1,0 +1,119 @@
+<%#
+    configuracion.ejs  -  Contraseña + apariencia (solo admin)
+-%>
+<%- include('parciales/_arriba', { titulo: 'Configuración', pagina: 'Configuración' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Configuración</h1>
+        <p class="subtitulo-pagina">Cambiá tu contraseña. <%= esAdmin ? 'También podés ajustar la apariencia del sistema.' : '' %></p>
+    </div>
+</header>
+
+<% if (ok === 'password') { %>
+    <div class="aviso aviso--exito" role="status">
+        <div><strong class="aviso-titulo">Contraseña actualizada</strong></div>
+    </div>
+<% } %>
+<% if (ok === 'apariencia') { %>
+    <div class="aviso aviso--exito" role="status">
+        <div><strong class="aviso-titulo">Apariencia guardada</strong></div>
+    </div>
+<% } %>
+
+<article class="tarjeta" id="password">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Cambiar contraseña</h2>
+            <p class="tarjeta-sub">Este cambio solo afecta tu cuenta.</p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <% if (error === 'actual') { %>
+            <div class="aviso aviso--error" role="alert"><p>La contraseña actual es incorrecta.</p></div>
+        <% } %>
+        <% if (error === 'corta') { %>
+            <div class="aviso aviso--error" role="alert"><p>La nueva contraseña tiene que tener al menos 4 caracteres.</p></div>
+        <% } %>
+        <% if (error === 'repetir') { %>
+            <div class="aviso aviso--error" role="alert"><p>La repetición de la contraseña no coincide.</p></div>
+        <% } %>
+
+        <form action="/configuracion/password" method="post" class="formulario">
+            <div class="grilla-campos">
+                <div class="campo campo--ancho">
+                    <label for="actual">Contraseña actual</label>
+                    <input type="password" id="actual" name="actual" autocomplete="current-password" required>
+                </div>
+                <div class="campo">
+                    <label for="nueva">Nueva contraseña</label>
+                    <input type="password" id="nueva" name="nueva" autocomplete="new-password" minlength="4" required>
+                </div>
+                <div class="campo">
+                    <label for="repetir">Repetir nueva contraseña</label>
+                    <input type="password" id="repetir" name="repetir" autocomplete="new-password" minlength="4" required>
+                </div>
+            </div>
+            <div class="acciones-formulario">
+                <button class="btn btn--primario" type="submit">Cambiar contraseña</button>
+            </div>
+        </form>
+    </div>
+</article>
+
+<% if (esAdmin) { %>
+    <article class="tarjeta" id="apariencia">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Apariencia</h2>
+                <p class="tarjeta-sub">Botoneras, menú y combinación de colores. Los presets se eligen por contraste AA.</p>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo">
+            <form action="/configuracion/apariencia" method="post" class="formulario">
+                <fieldset class="grupo-campos">
+                    <legend>Color de acento</legend>
+                    <div class="muestras">
+                        <% const listadoAcentos = [
+                            { clave: 'terracota', nombre: 'Terracota' },
+                            { clave: 'salvia',    nombre: 'Salvia' },
+                            { clave: 'bosque',    nombre: 'Bosque' },
+                            { clave: 'grafito',   nombre: 'Grafito' },
+                            { clave: 'vino',      nombre: 'Vino' }
+                        ]; %>
+                        <% for (const a of listadoAcentos) { %>
+                            <label class="muestra">
+                                <input type="radio" name="acento" value="<%= a.clave %>" <%= config.acento === a.clave ? 'checked' : '' %>>
+                                <span class="muestra-color" style="background: <%= acentos[a.clave] %>"></span>
+                                <span><%= a.nombre %></span>
+                            </label>
+                        <% } %>
+                    </div>
+                </fieldset>
+
+                <div class="grilla-campos">
+                    <div class="campo">
+                        <label for="botones">Botones</label>
+                        <select id="botones" name="botones">
+                            <option value="redondeado" <%= config.botones === 'redondeado' ? 'selected' : '' %>>Redondeados</option>
+                            <option value="recto" <%= config.botones === 'recto' ? 'selected' : '' %>>Rectos</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="menu">Menú lateral</label>
+                        <select id="menu" name="menu">
+                            <option value="comodo" <%= config.menu === 'comodo' ? 'selected' : '' %>>Cómodo</option>
+                            <option value="compacto" <%= config.menu === 'compacto' ? 'selected' : '' %>>Compacto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="acciones-formulario">
+                    <button class="btn btn--primario" type="submit">Guardar apariencia</button>
+                </div>
+            </form>
+        </div>
+    </article>
+<% } %>
+
+<%- include('parciales/_abajo') %>

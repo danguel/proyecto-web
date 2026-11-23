@@ -1,0 +1,133 @@
+<%#
+    admin-usuarios.ejs  -  Control de usuarios (solo administrador)
+-%>
+<%- include('parciales/_arriba', { titulo: 'Usuarios', pagina: 'Usuarios' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Usuarios</h1>
+        <p class="subtitulo-pagina">Crear, cambiar rol o eliminar cuentas del sistema.</p>
+    </div>
+</header>
+
+<% if (ok === 'creado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Usuario creado correctamente.</p></div>
+<% } %>
+<% if (ok === 'rol') { %>
+    <div class="aviso aviso--exito" role="status"><p>Rol actualizado.</p></div>
+<% } %>
+<% if (ok === 'eliminado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Usuario eliminado.</p></div>
+<% } %>
+
+<% if (error === 'datos') { %>
+    <div class="aviso aviso--error" role="alert"><p>Completá todos los datos. La contraseña debe tener al menos 4 caracteres.</p></div>
+<% } %>
+<% if (error === 'rol') { %>
+    <div class="aviso aviso--error" role="alert"><p>Rol inválido.</p></div>
+<% } %>
+<% if (error === 'duplicado') { %>
+    <div class="aviso aviso--error" role="alert"><p>Ya existe un usuario con ese nombre de usuario.</p></div>
+<% } %>
+<% if (error === 'propia') { %>
+    <div class="aviso aviso--error" role="alert"><p>No podés eliminar tu propia cuenta.</p></div>
+<% } %>
+<% if (error === 'ultimo-admin') { %>
+    <div class="aviso aviso--error" role="alert"><p>No podés dejar el sistema sin administradores.</p></div>
+<% } %>
+<% if (error === 'con-datos') { %>
+    <div class="aviso aviso--error" role="alert"><p>No se puede eliminar: tiene pacientes o evaluaciones asociadas.</p></div>
+<% } %>
+
+<article class="tarjeta" id="alta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Crear usuario</h2>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <form action="/admin/usuarios" method="post" class="formulario">
+            <div class="grilla-campos">
+                <div class="campo">
+                    <label for="nombre">Nombre y apellido</label>
+                    <input type="text" id="nombre" name="nombre" autocomplete="off" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$" title="Solo se permiten letras y espacios" maxlength="80">
+                </div>
+                <div class="campo">
+                    <label for="username">Usuario (para ingresar)</label>
+                    <input type="text" id="username" name="username" autocomplete="off" required pattern="^[a-z0-9_.-]+$" title="Solo letras minúsculas, números, puntos o guiones" maxlength="30">
+                </div>
+                <div class="campo">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" minlength="4" required>
+                </div>
+                <div class="campo">
+                    <label for="rol">Rol</label>
+                    <select id="rol" name="rol" required>
+                        <option value="comun">Profesional</option>
+                        <option value="administrador">Administrador</option>
+                        <option value="tutor">Tutor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="acciones-formulario">
+                <button class="btn btn--primario" type="submit">Crear usuario</button>
+            </div>
+        </form>
+    </div>
+</article>
+
+<article class="tarjeta" id="listado">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Listado</h2>
+            <p class="tarjeta-sub"><%= lista.length %> cuenta<%= lista.length === 1 ? '' : 's' %></p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo tarjeta-cuerpo--sin-relleno">
+        <div class="tabla-scroll">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for (const u of lista) { %>
+                        <tr>
+                            <td><%= u.id %></td>
+                            <td class="celda-texto"><%= u.nombre %></td>
+                            <td><%= u.username %></td>
+                            <td>
+                                <span class="etiqueta <%= u.rol === 'administrador' ? 'etiqueta--admin' : '' %>"><%= u.rol %></span>
+                            </td>
+                            <td>
+                                <div class="celda-acciones">
+                                    <form action="/admin/usuarios/<%= u.id %>/rol" method="post">
+                                        <select name="rol" aria-label="Cambiar rol de <%= u.nombre %>">
+                                            <option value="comun" <%= u.rol === 'comun' ? 'selected' : '' %>>Profesional</option>
+                                            <option value="administrador" <%= u.rol === 'administrador' ? 'selected' : '' %>>Administrador</option>
+                                            <option value="tutor" <%= u.rol === 'tutor' ? 'selected' : '' %>>Tutor</option>
+                                        </select>
+                                        <button class="btn btn--secundario btn--chico" type="submit">Cambiar rol</button>
+                                    </form>
+                                    <%# POR QUÉ el confirm NO interpola el nombre: un apellido con
+                                        comillas rompería el atributo onsubmit y el formulario
+                                        quedaría roto. El nombre ya está en la misma fila. %>
+                                    <form action="/admin/usuarios/<%= u.id %>/eliminar" method="post" data-confirmar="¿Seguro que querés eliminar la cuenta de &quot;<%= u.nombre %>&quot;?" data-confirmar-titulo="Eliminar cuenta de usuario">
+                                        <button class="btn btn--peligro btn--chico" type="submit">Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</article>
+
+<%- include('parciales/_abajo') %>

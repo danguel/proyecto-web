@@ -1,0 +1,281 @@
+<%#
+    evaluaciones-nueva.ejs  -  Asistente por pasos (Wizard) para registrar evaluaciones
+-%>
+<%- include('parciales/_arriba', { titulo: 'Nueva evaluación', pagina: 'Nueva Evaluación' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Nueva evaluación clínica</h1>
+        <p class="subtitulo-pagina">Completá el formulario paso a paso. La edad cronológica se calcula de forma automática.</p>
+    </div>
+</header>
+
+<% if (error) { %>
+    <div class="aviso aviso--error" role="alert">
+        <div>
+            <strong class="aviso-titulo">Revisá los datos</strong>
+            <p><%= error %></p>
+        </div>
+    </div>
+<% } %>
+
+<% if (mensaje) { %>
+    <div class="aviso aviso--exito" role="status">
+        <div>
+            <strong class="aviso-titulo">Guardado correctamente</strong>
+            <p><%= mensaje %></p>
+        </div>
+    </div>
+<% } %>
+
+<%# [FASE 4 - FORMULARIO POST]: Al presionar "Guardar evaluación", envía los datos por POST a /evaluaciones/nueva -%>
+<form action="/evaluaciones/nueva" method="post" enctype="multipart/form-data" id="form-evaluaciones-pasos" class="formulario">
+    <article class="tarjeta" style="padding: 0; overflow: hidden;">
+        <!-- Barra de Pasos Integrada en la Tarjeta -->
+        <div class="pasos-progreso">
+            <div class="paso-item activo" data-paso="1">
+                <span class="paso-num">01</span>
+                <span class="paso-nombre">Paciente & Tutor</span>
+            </div>
+            <div class="paso-divisor"></div>
+            <div class="paso-item" data-paso="2">
+                <span class="paso-num">02</span>
+                <span class="paso-nombre">Desarrollo y Hábitos</span>
+            </div>
+            <div class="paso-divisor"></div>
+            <div class="paso-item" data-paso="3">
+                <span class="paso-num">03</span>
+                <span class="paso-nombre">Observaciones y Archivos</span>
+            </div>
+        </div>
+
+        <!-- PASO 1: Paciente & Tutor -->
+        <div class="seccion-paso activa" id="paso-1">
+            <header class="tarjeta-cabecera">
+                <div>
+                    <span class="indicador-editorial">Paso 01 de 03</span>
+                    <h2 class="tarjeta-titulo">Identificación del paciente y familia</h2>
+                    <p class="tarjeta-sub">Podés seleccionar un paciente ya registrado o dar de alta uno nuevo vinculándole su tutor</p>
+                </div>
+            </header>
+            <div class="tarjeta-cuerpo">
+                <div class="grilla-campos">
+                    <fieldset class="campo campo--ancho campo--fieldset">
+                        <legend class="campo-etiqueta">Tipo de registro del paciente *</legend>
+                        <div class="selector-segmentado" role="radiogroup" aria-label="Tipo de registro del paciente">
+                            <label>
+                                <input type="radio" name="paciente_modo" value="existente" <%= (pacientes && pacientes.length > 0) ? 'checked' : '' %>>
+                                <span>👤 Paciente registrado</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="paciente_modo" value="nuevo" <%= (!pacientes || pacientes.length === 0) ? 'checked' : '' %>>
+                                <span>➕ Registrar nuevo paciente</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- Bloque: Paciente Existente -->
+                    <div id="bloque-paciente-existente" class="campo campo--ancho" style="<%= (!pacientes || pacientes.length === 0) ? 'display: none;' : '' %>">
+                        <label for="paciente_id">Paciente registrado *</label>
+                        <select id="paciente_id" name="paciente_id">
+                            <option value="">Seleccioná un paciente de la lista...</option>
+                            <% (pacientes || []).forEach(p => { %>
+                                <option value="<%= p.id %>"
+                                        data-nacimiento="<%= p.fecha_nacimiento %>"
+                                        data-tutor="<%= p.tutor_nombre || 'Sin tutor asignado' %>">
+                                    <%= p.nombre %> <%= p.tutor_nombre ? '(Tutor: ' + p.tutor_nombre + ')' : '(Sin tutor)' %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        <p id="ficha-paciente-existente" class="campo-ayuda" style="margin-top: var(--esp-2); display: none;"></p>
+                    </div>
+
+                    <!-- Bloque: Nuevo Paciente -->
+                    <div id="bloque-paciente-nuevo" class="campo--ancho" style="<%= (pacientes && pacientes.length > 0) ? 'display: none;' : '' %> width: 100%;">
+                        <div class="grilla-campos" style="grid-column: 1 / -1;">
+                            <div class="campo campo--ancho">
+                                <label for="nombre_paciente">Nombre y apellido del nuevo paciente *</label>
+                                <input type="text" id="nombre_paciente" name="nombre_paciente" autocomplete="off"
+                                       pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$"
+                                       title="Solo se permiten letras y espacios (sin números)"
+                                       maxlength="100" placeholder="Ej: Mateo Gómez">
+                            </div>
+                            <div class="campo">
+                                <label for="fecha_nacimiento">Fecha de nacimiento *</label>
+                                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" max="<%= hoy %>">
+                            </div>
+
+                            <!-- Tutor vinculación -->
+                            <div class="campo campo--ancho" style="border-top: 1px dashed var(--linea); padding-top: var(--esp-3); margin-top: var(--esp-2);">
+                                <label for="tutor_modo">Vinculación familiar / Tutor</label>
+                                <select id="tutor_modo" name="tutor_modo">
+                                    <option value="sin_tutor">Sin tutor asignado por ahora</option>
+                                    <option value="existente">Asignar tutor registrado en el sistema...</option>
+                                    <option value="crear">+ Crear nueva cuenta para el tutor (DNI como clave)</option>
+                                </select>
+                            </div>
+
+                            <div id="bloque-tutor-existente" class="campo campo--ancho" style="display: none;">
+                                <label for="tutor_id">Seleccionar tutor</label>
+                                <select id="tutor_id" name="tutor_id">
+                                    <option value="">Seleccionar tutor registrado...</option>
+                                    <% (tutores || []).forEach(t => { %>
+                                        <option value="<%= t.id %>"><%= t.nombre %> (DNI / Usuario: <%= t.username %>)</option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div id="bloque-tutor-crear" class="campo campo--ancho" style="display: none;">
+                                <div class="grilla-campos">
+                                    <div class="campo">
+                                        <label for="nuevo_tutor_nombre">Nombre completo del tutor *</label>
+                                        <input type="text" id="nuevo_tutor_nombre" name="nuevo_tutor_nombre" autocomplete="off"
+                                               pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$"
+                                               placeholder="Ej: Laura Gómez">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="nuevo_tutor_dni">DNI del tutor (7 u 8 números) *</label>
+                                        <input type="text" id="nuevo_tutor_dni" name="nuevo_tutor_dni" autocomplete="off"
+                                               pattern="^\d{7,8}$" maxlength="8"
+                                               placeholder="Ej: 38456123">
+                                        <p class="campo-ayuda">El DNI será su usuario y contraseña inicial para el portal. Podrá cambiarla luego en Configuración.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Común a ambos: Fecha de evaluación y Edad calculada -->
+                    <div class="campo">
+                        <label for="fecha">Fecha de la evaluación *</label>
+                        <input type="date" id="fecha" name="fecha" max="<%= hoy %>" value="<%= hoy %>" required>
+                    </div>
+                    <div class="campo">
+                        <label>Edad cronológica calculada</label>
+                        <div class="caja-edad-calculada">
+                            <span class="icono-edad">✦</span>
+                            <span id="edad-calculada" class="valor-edad placeholder-edad">Completá la fecha de nacimiento y la de la evaluación</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASO 2: Desarrollo y Hábitos -->
+        <div class="seccion-paso" id="paso-2">
+            <header class="tarjeta-cabecera">
+                <div>
+                    <span class="indicador-editorial">Paso 02 de 03</span>
+                    <h2 class="tarjeta-titulo">Desarrollo y hábitos del paciente</h2>
+                    <p class="tarjeta-sub">Completá los indicadores evolutivos solicitados</p>
+                </div>
+            </header>
+            <div class="tarjeta-cuerpo">
+                <div class="grilla-campos">
+                    <div class="campo campo--ancho">
+                        <label for="motivo_consulta">Motivo de consulta</label>
+                        <textarea id="motivo_consulta" name="motivo_consulta" rows="3" placeholder="Describí los motivos manifestados por la familia o escuela..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="desarrollo_lenguaje">Desarrollo del lenguaje</label>
+                        <select id="desarrollo_lenguaje" name="desarrollo_lenguaje">
+                            <option value="">Seleccionar una opción...</option>
+                            <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.lenguaje && opcionesClinicas.lenguaje.length > 0) { %>
+                                <% opcionesClinicas.lenguaje.forEach(opt => { %>
+                                    <option value="<%= opt.nombre %>"><%= opt.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="Bajo">Bajo</option>
+                                <option value="Por encima del promedio">Por encima del promedio</option>
+                                <option value="Óptimo">Óptimo</option>
+                                <option value="Avanzado para la edad">Avanzado para la edad</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="desarrollo_motor">Desarrollo motor</label>
+                        <textarea id="desarrollo_motor" name="desarrollo_motor" rows="3" placeholder="Coordinación gruesa y fina, marcha, postura..."></textarea>
+                    </div>
+                    <div class="campo">
+                        <label for="alimentacion">Alimentación</label>
+                        <select id="alimentacion" name="alimentacion">
+                            <option value="">Seleccionar una opción...</option>
+                            <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.alimentacion && opcionesClinicas.alimentacion.length > 0) { %>
+                                <% opcionesClinicas.alimentacion.forEach(opt => { %>
+                                    <option value="<%= opt.nombre %>"><%= opt.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="A considerar">A considerar</option>
+                                <option value="Aceptable">Aceptable</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="sueno">Sueño</label>
+                        <select id="sueno" name="sueno">
+                            <option value="">Seleccionar una opción...</option>
+                            <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.sueno && opcionesClinicas.sueno.length > 0) { %>
+                                <% opcionesClinicas.sueno.forEach(opt => { %>
+                                    <option value="<%= opt.nombre %>"><%= opt.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="Escaso">Escaso</option>
+                                <option value="Interrumpido">Interrumpido</option>
+                                <option value="Aceptable">Aceptable</option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASO 3: Observaciones y Archivos -->
+        <div class="seccion-paso" id="paso-3">
+            <header class="tarjeta-cabecera">
+                <div>
+                    <span class="indicador-editorial">Paso 03 de 03</span>
+                    <h2 class="tarjeta-titulo">Observaciones, juego y adjuntos</h2>
+                    <p class="tarjeta-sub">Registro de dinámicas lúdicas, conclusiones clínicas y documentación</p>
+                </div>
+            </header>
+            <div class="tarjeta-cuerpo">
+                <div class="grilla-campos">
+                    <div class="campo campo--ancho">
+                        <label for="tiempo_libre">Tiempo libre</label>
+                        <textarea id="tiempo_libre" name="tiempo_libre" rows="3" placeholder="Actividades recreativas, pantallas, rutinas de ocio..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="juego">Juego</label>
+                        <textarea id="juego" name="juego" rows="3" placeholder="Tipo de juego predominante (simbólico, reglado, solitario, compartido)..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="observaciones">Observaciones generales</label>
+                        <textarea id="observaciones" name="observaciones" rows="4" placeholder="Apreciaciones clínicas, hipótesis diagnósticas o sugerencias..."></textarea>
+                    </div>
+                    <div class="campo campo--ancho">
+                        <label for="imagenes">Imágenes o informes adjuntos (opcional)</label>
+                        <input type="file" id="imagenes" name="imagenes" accept="image/*" multiple>
+                        <p class="campo-ayuda">Podés adjuntar fotos de producciones gráficas, cuadernos o tests administrados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Unificado de Navegación del Asistente -->
+        <footer class="modal-pie" style="display: flex; justify-content: space-between; align-items: center; padding: var(--esp-4) var(--esp-5); background-color: var(--superficie-2); border-top: 1px solid var(--linea);">
+            <div style="display: flex; gap: var(--esp-3);">
+                <button type="button" class="btn btn--secundario" id="btn-paso-anterior" style="display: none;">← Anterior</button>
+                <a class="btn btn--secundario" id="btn-cancelar-pasos" href="/dashboard">Cancelar</a>
+            </div>
+            <div style="display: flex; gap: var(--esp-3);">
+                <button type="button" class="btn btn--primario" id="btn-paso-siguiente">Siguiente →</button>
+                <%# [FASE 4 - BOTÓN GUARDAR]: Dispara el submit del formulario hacia el backend en app.js -%>
+                <button type="submit" class="btn btn--primario" id="btn-guardar-evaluacion" style="display: none;">Guardar evaluación</button>
+            </div>
+        </footer>
+    </article>
+</form>
+
+<script src="/js/validador-en-vivo.js"></script>
+<script src="/js/evaluaciones-nueva.js"></script>
+<%- include('parciales/_abajo') %>

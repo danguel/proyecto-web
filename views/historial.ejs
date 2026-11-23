@@ -1,0 +1,236 @@
+<%#
+    historial.ejs  -  Historial unificado: Filtros + Resultados en una sola tarjeta + Modal asistido
+-%>
+<%- include('parciales/_arriba', { titulo: 'Historial', pagina: 'Historial' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Historial de evaluaciones</h1>
+        <p class="subtitulo-pagina">Consultá las evaluaciones registradas por período o paciente. Podés exportar los datos filtrados en PDF o CSV.</p>
+    </div>
+    <% if (rolInfo.secciones.includes('Nueva Evaluación')) { %>
+        <div>
+            <button type="button" class="btn btn--primario" id="btn-abrir-modal-evaluacion">
+                + Nueva evaluación
+            </button>
+        </div>
+    <% } %>
+</header>
+
+<% if (typeof ok !== 'undefined' && ok) { %>
+    <div class="aviso aviso--exito" role="status">
+        <div><p><%= ok %></p></div>
+    </div>
+<% } %>
+
+<% if (error) { %>
+    <div class="aviso aviso--error" role="alert">
+        <div>
+            <strong class="aviso-titulo">Atención</strong>
+            <p><%= error %></p>
+        </div>
+    </div>
+<% } %>
+
+<% if (mensaje) { %>
+    <div class="aviso aviso--info" role="status">
+        <div><p><%= mensaje %></p></div>
+    </div>
+<% } %>
+
+<%# ======================================================================== %>
+<%# TARJETA UNIFICADA: FILTROS + RESULTADOS %>
+<%# ======================================================================== %>
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Filtros y Búsqueda</h2>
+            <p class="tarjeta-sub">Modificá el rango de fechas o buscá por nombre de paciente</p>
+        </div>
+    </header>
+
+    <div class="tarjeta-cuerpo">
+        <%# [FASE 4 - FORMULARIO GET HISTORIAL]: Envía los filtros por URL (query params) a app.js -%>
+        <form action="/historial" method="get" class="formulario">
+            <div class="grilla-campos">
+                <div class="campo">
+                    <label for="desde">Desde</label>
+                    <input type="date" id="desde" name="desde" value="<%= filtros.desde %>">
+                </div>
+                <div class="campo">
+                    <label for="hasta">Hasta</label>
+                    <input type="date" id="hasta" name="hasta" value="<%= filtros.hasta %>">
+                </div>
+                <div class="campo campo--ancho">
+                    <label for="nombre">Nombre del paciente</label>
+                    <input type="text" id="nombre" name="nombre" value="<%= filtros.nombre %>" autocomplete="off" placeholder="Escribí parte del nombre...">
+                </div>
+            </div>
+
+            <div class="acciones-formulario">
+                <%# [FASE 4 - BOTÓN APLICAR FILTROS]: Dispara la consulta SELECT en la base de datos -%>
+                <button class="btn btn--primario" type="submit">Aplicar filtros</button>
+                <a class="btn btn--secundario" href="/historial">Limpiar</a>
+                <%
+                    // Armamos la URL de descarga manteniendo los filtros que el usuario aplicó.
+                    const qs = [];
+                    if (filtros.desde) qs.push('desde=' + encodeURIComponent(filtros.desde));
+                    if (filtros.hasta) qs.push('hasta=' + encodeURIComponent(filtros.hasta));
+                    if (filtros.nombre) qs.push('nombre=' + encodeURIComponent(filtros.nombre));
+                    const params = qs.length ? '?' + qs.join('&') : '';
+                    const urlCsv = '/historial/descargar' + params;
+                    const urlPdf = '/historial/descargar-pdf' + params;
+                %>
+                <a class="btn btn--primario" href="<%= urlPdf %>" target="_blank" rel="noopener noreferrer">Descargar PDF</a>
+                <a class="btn btn--secundario" href="<%= urlCsv %>">Descargar CSV</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Divisorio y Cabecera de Resultados dentro del mismo contenedor -->
+    <header class="tarjeta-cabecera" style="border-top: 1px solid var(--linea);">
+        <div>
+            <h3 class="tarjeta-titulo" style="font-size: 1.15rem;">Resultados obtenidos</h3>
+            <p class="tarjeta-sub"><%= resultados.length %> <%= resultados.length === 1 ? 'evaluación encontrada' : 'evaluaciones encontradas' %> en el período (hacé clic en cualquier fila o en "Ver ficha" para desplegar la anamnesis completa)</p>
+        </div>
+    </header>
+
+    <div class="tarjeta-cuerpo tarjeta-cuerpo--sin-relleno">
+        <div class="tabla-scroll" tabindex="0" role="region" aria-label="Tabla de historial de evaluaciones clínicas">
+            <table class="tabla tabla--historial">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 110px;">Fecha</th>
+                        <th scope="col" style="min-width: 150px;">Paciente</th>
+                        <th scope="col" style="min-width: 140px;">Profesional</th>
+                        <th scope="col" style="min-width: 200px;">Motivo de consulta</th>
+                        <th scope="col" style="min-width: 130px;">Lenguaje</th>
+                        <th scope="col" style="text-align: right; min-width: 160px;">Ficha & Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (resultados.length === 0) { %>
+                        <tr class="fila-vacia">
+                            <td colspan="6">Sin resultados para mostrar en este período.</td>
+                        </tr>
+                    <% } %>
+                    <%# [FASE 4 - RENDERIZADO DE FILAS]: Itera el array "resultados" que vino de la base de datos (SELECT) -%>
+                    <% for (const fila of resultados) { %>
+                        <tr class="fila-principal" data-target="detalle-eval-<%= fila.id %>" tabindex="0" aria-expanded="false" role="button" aria-controls="detalle-eval-<%= fila.id %>">
+                            <td class="celda-corta"><strong><%= fila.fecha %></strong></td>
+                            <td class="celda-media"><%= fila.paciente || '—' %></td>
+                            <td class="celda-media" style="color: var(--tinta-2);"><%= fila.profesional || '—' %></td>
+                            <td class="celda-texto"><%= fila.motivo_consulta || '—' %></td>
+                            <td class="celda-corta">
+                                <span style="display: inline-block; padding: 2px 8px; border-radius: var(--r-chico); background: var(--superficie-2); border: 1px solid var(--linea); font-size: .82rem; font-weight: 500;">
+                                    <%= fila.desarrollo_lenguaje || '—' %>
+                                </span>
+                            </td>
+                            <td class="celda-corta" style="text-align: right;" onclick="event.stopPropagation();">
+                                <div style="display: inline-flex; gap: var(--esp-2); align-items: center; justify-content: flex-end;">
+                                    <button type="button" class="btn-expandir" data-id="<%= fila.id %>" aria-label="Ver u ocultar detalles clínicos de la evaluación">
+                                        <span>Ficha</span>
+                                        <svg class="icono-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+                                    <% if (usuario && usuario.rol === 'administrador') { %>
+                                        <a href="/admin/evaluaciones/<%= fila.id %>/editar" class="btn btn--secundario btn--chico" title="Modificar informe clínico">
+                                            <svg style="width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; vertical-align: -1px; margin-right: 2px;" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                            Editar
+                                        </a>
+                                        <form action="/admin/evaluaciones/<%= fila.id %>/eliminar" method="post" style="display: inline;" data-confirmar="¿Seguro que querés eliminar esta evaluación clínica?" data-confirmar-titulo="Eliminar evaluación">
+                                            <button type="submit" class="btn btn--peligro btn--chico" title="Eliminar informe" aria-label="Eliminar informe">
+                                                <svg style="width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; vertical-align: -1px;" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="fila-detalle" id="detalle-eval-<%= fila.id %>" hidden>
+                            <td colspan="6" style="padding: 0;">
+                                <div class="ficha-detalle-clinica">
+                                    <div class="detalle-bloque">
+                                        <span class="detalle-rotulo">Desarrollo Motor</span>
+                                        <div class="detalle-valor"><%= fila.desarrollo_motor || 'Sin especificar' %></div>
+                                    </div>
+                                    <div class="detalle-bloque">
+                                        <span class="detalle-rotulo">Alimentación</span>
+                                        <div class="detalle-valor"><%= fila.alimentacion || 'Sin especificar' %></div>
+                                    </div>
+                                    <div class="detalle-bloque">
+                                        <span class="detalle-rotulo">Sueño y Descanso</span>
+                                        <div class="detalle-valor"><%= fila.sueno || 'Sin especificar' %></div>
+                                    </div>
+                                    <div class="detalle-bloque">
+                                        <span class="detalle-rotulo">Tiempo Libre</span>
+                                        <div class="detalle-valor"><%= fila.tiempo_libre || 'Sin especificar' %></div>
+                                    </div>
+                                    <div class="detalle-bloque">
+                                        <span class="detalle-rotulo">Juego y Socialización</span>
+                                        <div class="detalle-valor"><%= fila.juego || 'Sin especificar' %></div>
+                                    </div>
+                                    <div class="detalle-bloque detalle-bloque--ancho">
+                                        <span class="detalle-rotulo">Observaciones Clínicas Generales</span>
+                                        <div class="detalle-valor" style="font-family: var(--fuente-editorial); font-size: .95rem; font-style: italic;">
+                                            <%= fila.observaciones || 'Sin observaciones adicionales registradas.' %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</article>
+
+<script>
+// Interacción de acordeón para filas clínicas (Principio de Retorno Único)
+document.addEventListener('DOMContentLoaded', function () {
+    const filas = document.querySelectorAll('.fila-principal');
+
+    function alternarFila(fila) {
+        let cambiado = false;
+        const targetId = fila.getAttribute('data-target');
+        const detalle = document.getElementById(targetId);
+
+        if (detalle) {
+            const estaOculto = detalle.hasAttribute('hidden');
+            if (estaOculto) {
+                detalle.removeAttribute('hidden');
+                fila.classList.add('abierta');
+                fila.setAttribute('aria-expanded', 'true');
+            } else {
+                detalle.setAttribute('hidden', '');
+                fila.classList.remove('abierta');
+                fila.setAttribute('aria-expanded', 'false');
+            }
+            cambiado = true;
+        }
+
+        return cambiado;
+    }
+
+    filas.forEach(function (fila) {
+        fila.addEventListener('click', function () {
+            alternarFila(fila);
+        });
+
+        fila.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                alternarFila(fila);
+            }
+        });
+    });
+});
+</script>
+
+<% if (rolInfo.secciones.includes('Nueva Evaluación')) { %>
+    <%- include('parciales/_modal-evaluacion') %>
+<% } %>
+
+<%- include('parciales/_abajo') %>

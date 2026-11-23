@@ -1,0 +1,38 @@
+<%#
+    _abajo.ejs  -  CIERRE DEL MARCO
+    Abre y cierra exactamente lo que abrió _arriba.ejs.
+-%>
+    </main>
+</div>
+
+<!-- Diálogo de Confirmación Web (Accesible y Editorial) -->
+<dialog id="modal-confirmacion-web" class="modal-confirmacion" aria-labelledby="modal-confirm-titulo" aria-describedby="modal-confirm-mensaje">
+    <div class="modal-confirmacion-caja">
+        <div class="modal-confirmacion-encabezado">
+            <div id="modal-confirm-icono" class="modal-confirmacion-icono" aria-hidden="true">
+                <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            </div>
+            <div class="modal-confirmacion-textos">
+                <h3 id="modal-confirm-titulo" class="modal-confirmacion-titulo">Atención</h3>
+                <p id="modal-confirm-mensaje" class="modal-confirmacion-mensaje">¿Estás seguro de que querés realizar esta acción?</p>
+            </div>
+        </div>
+        <div class="modal-confirmacion-acciones">
+            <button type="button" class="btn btn--secundario" id="btn-confirm-cancelar">Cancelar</button>
+            <button type="button" class="btn btn--peligro" id="btn-confirm-aceptar">Aceptar</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- GSAP & ScrollTrigger: Coreografía y Movimiento Calmo -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="/js/animaciones.js" defer></script>
+<script src="/js/barra-lateral.js" defer></script>
+<script src="/js/confirmador-web.js" defer></script>
+</body>
+</html>

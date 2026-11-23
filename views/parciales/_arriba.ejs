@@ -1,0 +1,131 @@
+<%#
+    _arriba.ejs  -  PARTE DE ARRIBA DE TODAS LAS PANTALLAS
+    ------------------------------------------------------------------------
+    POR QUÉ existe este archivo:
+    antes cada vista repetía a mano el <head>, la barra lateral y el menú.
+    Cuando algo se repetía 7 veces, se desincronizaba: una vista tenía clases
+    que no existían en el CSS y el menú de otra no mostraba todas las secciones.
+    Con un solo lugar que arma el marco, ese tipo de error deja de ser posible.
+
+    Recibe:
+      titulo  -> texto de la pestaña del navegador
+      pagina  -> clave del ítem de menú que está activo (para aria-current)
+-%>
+<!DOCTYPE html>
+<html lang="es" data-botones="<%= config.botones %>" data-menu="<%= config.menu %>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= titulo %> · Centro Psicopedagógico</title>
+    <meta name="description" content="Sistema de gestión de evaluaciones del Centro de Atención Psicopedagógica.">
+    <!-- Tipografía Editorial Humanista & Lectura Clínica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <%# El único color que se inyecta desde el servidor. Viene validado contra
+        la lista de presets en app.js, así que siempre es un hex seguro. %>
+    <style>:root { --acento: <%= config.acentoHex %>; }</style>
+    <script>
+        if (localStorage.getItem('barraColapsada') === 'true') {
+            document.documentElement.classList.add('barra-colapsada');
+        }
+    </script>
+</head>
+<body>
+<a class="salto" href="#contenido">Saltar al contenido principal</a>
+<div class="app">
+
+    <aside class="barra">
+        <div class="barra-cabecera">
+            <a class="marca" href="/dashboard" title="Ir al panel principal">
+                <span class="marca-icono" aria-hidden="true">CP</span>
+                <span class="marca-texto">
+                    <span class="marca-titulo">Centro Psicopedagógico</span>
+                    <span class="marca-sub">Gestión de evaluaciones</span>
+                </span>
+            </a>
+            <button type="button" class="btn-toggle-barra" id="btn-toggle-barra" aria-label="Contraer o expandir barra lateral" title="Contraer o expandir menú">
+                <svg class="nav-icono icono-flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M11 19l-7-7 7-7M19 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </div>
+
+        <%
+            // Agrupamos los ítems por "porGrupo" respetando el orden de ITEMS_MENU.
+            // El primer grupo no tiene rótulo: es la navegación de todos los días.
+            const grupos = [];
+            let grupoActual = null;
+            for (const item of menu) {
+                const nombreGrupo = item.porGrupo || '';
+                if (!grupoActual || grupoActual.nombre !== nombreGrupo) {
+                    grupoActual = { nombre: nombreGrupo, items: [] };
+                    grupos.push(grupoActual);
+                }
+                grupoActual.items.push(item);
+            }
+
+            // Un ícono por sección. Son decorativos: el texto de al lado ya dice
+            // todo, así que van con aria-hidden para no repetir la información.
+            const ICONOS = {
+                'Inicio':           '<path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
+                'Nueva Evaluación': '<path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/><path d="M12 8v8M8 12h8"/>',
+                'Historial':        '<path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/><path d="M12 7v5l3 2"/>',
+                'Estadísticas':     '<path d="M3 20h18"/><path d="M7 20v-6"/><path d="M12 20V8"/><path d="M17 20v-9"/>',
+                'Pacientes':        '<path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20"/>',
+                'Usuarios':         '<path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><path d="M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4"/>',
+                'Catálogos':        '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+                'Configuración':    '<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>'
+            };
+        %>
+
+        <nav class="nav" aria-label="Menú principal">
+            <% for (const grupo of grupos) { %>
+                <div class="nav-grupo">
+                    <% if (grupo.nombre) { %>
+                        <span class="nav-grupo-rotulo"><%= grupo.nombre %></span>
+                    <% } %>
+                    <ul class="nav-lista">
+                        <% for (const item of grupo.items) { %>
+                            <li>
+                                <a class="nav-link"
+                                   href="<%= item.href %>"
+                                   title="<%= item.texto %>"
+                                   <%= pagina === item.clave ? 'aria-current="page"' : '' %>>
+                                    <svg class="nav-icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <%- ICONOS[item.clave] || '' %>
+                                    </svg>
+                                    <span><%= item.texto %></span>
+                                </a>
+                            </li>
+                        <% } %>
+                    </ul>
+                </div>
+            <% } %>
+        </nav>
+
+        <div class="barra-pie">
+            <div class="ficha" title="Conectado como <%= usuario.nombre %> (<%= rolInfo.etiqueta %>)">
+                <span class="ficha-avatar" aria-hidden="true"><%= (usuario.nombre || usuario.username).charAt(0) %></span>
+                <span class="ficha-datos">
+                    <span class="ficha-nombre"><%= usuario.nombre %></span>
+                    <% if (usuario.nombre.toLowerCase() !== rolInfo.etiqueta.toLowerCase()) { %>
+                        <span class="ficha-rol"><%= rolInfo.etiqueta %></span>
+                    <% } else { %>
+                        <span class="ficha-rol">Sesión activa</span>
+                    <% } %>
+                </span>
+            </div>
+            <a class="salir" href="/logout" title="Cerrar sesión">
+                <svg class="nav-icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/>
+                    <path d="M10 16l-4-4 4-4"/>
+                    <path d="M6 12h10"/>
+                </svg>
+                <span>Cerrar sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="principal" id="contenido">

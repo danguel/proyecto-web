@@ -1,0 +1,120 @@
+<%#
+    estadisticas.ejs  -  Estadísticas con datos reales
+-%>
+<%- include('parciales/_arriba', { titulo: 'Estadísticas', pagina: 'Estadísticas' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Estadísticas</h1>
+        <p class="subtitulo-pagina">Números calculados directamente desde la base de datos.</p>
+    </div>
+</header>
+
+<div class="grilla-indicadores">
+    <article class="indicador">
+        <span class="indicador-etiqueta">Evaluaciones</span>
+        <span class="indicador-valor"><%= datos.totalEvaluaciones %></span>
+    </article>
+    <article class="indicador">
+        <span class="indicador-etiqueta">Pacientes registrados</span>
+        <span class="indicador-valor"><%= datos.totalPacientes %></span>
+    </article>
+</div>
+
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Pacientes por franja etaria</h2>
+            <p class="tarjeta-sub">Edad al momento de la evaluación</p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <ol class="barras">
+            <% for (const fila of datos.franjasEtarias) { %>
+                <li class="barra-fila">
+                    <span class="barra-etiqueta"><%= fila.etiqueta %> años</span>
+                    <div class="barra-pista" role="meter" aria-valuemin="0" aria-valuemax="<%= datos.totalPacientes %>" aria-valuenow="<%= fila.total %>" aria-label="<%= fila.etiqueta %> años: <%= fila.total %> pacientes">
+                        <div class="barra-relleno" style="width: <%= datos.totalPacientes > 0 ? (fila.total / datos.totalPacientes * 100) : 0 %>%"></div>
+                    </div>
+                    <span class="barra-valor"><%= fila.total %></span>
+                </li>
+            <% } %>
+        </ol>
+    </div>
+</article>
+
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Evaluaciones por desarrollo del lenguaje</h2>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <ol class="barras">
+            <% if (datos.porLenguaje.length === 0) { %>
+                <p class="muted">Sin datos para mostrar.</p>
+            <% } else { %>
+                <% for (const fila of datos.porLenguaje) { %>
+                    <li class="barra-fila">
+                        <span class="barra-etiqueta"><%= fila.etiqueta %></span>
+                        <div class="barra-pista" role="meter" aria-valuemin="0" aria-valuemax="<%= datos.totalEvaluaciones %>" aria-valuenow="<%= fila.total %>" aria-label="<%= fila.etiqueta %>: <%= fila.total %> evaluaciones">
+                            <div class="barra-relleno" style="width: <%= datos.totalEvaluaciones > 0 ? (fila.total / datos.totalEvaluaciones * 100) : 0 %>%"></div>
+                        </div>
+                        <span class="barra-valor"><%= fila.total %></span>
+                    </li>
+                <% } %>
+            <% } %>
+        </ol>
+    </div>
+</article>
+
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Evaluaciones por mes</h2>
+            <p class="tarjeta-sub">Últimos 6 meses con actividad</p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <ol class="barras">
+            <% if (datos.porMes.length === 0) { %>
+                <p class="muted">Sin datos para mostrar.</p>
+            <% } else { %>
+                <% for (const fila of datos.porMes) { %>
+                    <li class="barra-fila">
+                        <span class="barra-etiqueta"><%= fila.etiqueta %></span>
+                        <div class="barra-pista">
+                            <div class="barra-relleno" style="width: <%= datos.porMes[0].total > 0 ? (fila.total / datos.porMes[0].total * 100) : 0 %>%"></div>
+                        </div>
+                        <span class="barra-valor"><%= fila.total %></span>
+                    </li>
+                <% } %>
+            <% } %>
+        </ol>
+    </div>
+</article>
+
+<% if (datos.porProfesional.length > 0) { %>
+    <article class="tarjeta">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Evaluaciones por profesional</h2>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo">
+            <ol class="barras">
+                <% for (const fila of datos.porProfesional) { %>
+                    <li class="barra-fila">
+                        <span class="barra-etiqueta"><%= fila.etiqueta %></span>
+                        <div class="barra-pista">
+                            <div class="barra-relleno" style="width: <%= datos.porProfesional[0].total > 0 ? (fila.total / datos.porProfesional[0].total * 100) : 0 %>%"></div>
+                        </div>
+                        <span class="barra-valor"><%= fila.total %></span>
+                    </li>
+                <% } %>
+            </ol>
+        </div>
+    </article>
+<% } %>
+
+<%- include('parciales/_abajo') %>

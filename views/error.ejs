@@ -1,0 +1,21 @@
+<%#
+    error.ejs  -  Pantalla de error (403 / otros)
+-%>
+<%- include('parciales/_arriba', { titulo: 'Error', pagina: null }) %>
+
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h1 class="tarjeta-titulo">Acceso restringido</h1>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <p><%= mensaje %></p>
+        <div class="acciones-formulario acciones-formulario--separadas">
+            <a class="btn btn--primario" href="/dashboard">Volver al panel</a>
+            <a class="btn btn--secundario" href="/login">Ir al login</a>
+        </div>
+    </div>
+</article>
+
+<%- include('parciales/_abajo') %>

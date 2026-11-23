@@ -1,0 +1,208 @@
+===== PAGINA 1 =====
+ 
+ 
+Proyecto final 
+Programación Web II 
+“Propuesta desarrollo de un sistema de gestión de datos: Integración front-end y back-end” 
+Instituto de Estudios Superiores 
+Combate de Mbororé 
+  
+
+===== PAGINA 2 =====
+2 
+ 
+Proyecto Final  
+ 
+Propuesta general 
+ 
+El desarrollo de este sistema debe contener la información que se detalla a continuación; 
+misma que es relativa a un Centro de Atención Psicopedagógica. 
+ 
+El flujo de información de este sistema está caracterizado por los siguientes puntos de 
+interés:  
+ 
+01. Un registro de las evaluaciones realizadas por el profesional, donde se deben 
+asentar los siguientes datos:  
+ 
+a. Nombre completo del paciente 
+b. Edad cronológica: Esto representa la edad en años y en meses 
+c. Fecha de realización de la evaluación 
+d. Motivo inicial de la consulta 
+e. Desarrollo del Lenguaje: En este caso es necesario contar con una lista de 
+opciones, a saber:  
+i. Bajo 
+ii. Por encima del promedio 
+iii. Óptimo 
+iv. Avanzado para la edad 
+f. Desarrollo motor: Es un texto descriptivo donde el profesional asienta ciertas 
+características motrices del paciente 
+g. Alimentación 
+i. A considerar 
+ii. Aceptable 
+h. Sueño 
+i. Escaso 
+ii. Interrumpido 
+iii. Aceptable 
+i. Tiempo libre: Aquí el profesional describe, en líneas generales, las 
+actividades que realiza el paciente en los tiempos de ocio.  
+j. Juego: Características genéricas sobre conducta de juego del paciente; si se 
+adapta a las consignas, si obtiene buenos resultados en propuestas. 
+k. Otras observaciones: En esta sección, el profesional puede explayarse sobre 
+ciertos aspectos que considere destacables. A su vez, puede subir imágenes 
+de alguna producción del paciente, tales como escrituras en un cuaderno, 
+dibujos realizados, cálculos en una hoja, etc.  
+ 
+ 
+ 
+===== PAGINA 3 =====
+3 
+ 
+02. Un historial con acceso a las evaluaciones de un paciente determinado  
+ 
+a. Este historial debe permitir una búsqueda por período de fechas, ya que un 
+mismo paciente pudo asistir a más de una evaluación. 
+b. Del mismo modo, y si el período de fechas no se conoce con precisión, se 
+debe permitir la búsqueda por nombre del paciente. 
+c. Para cualquiera de los resultados, al obtener los datos se debe generar un 
+pdf o un listado de pdfs descargables del paciente en cuestión  
+d. Al menos uno de los campos pedidos debe cargarse obligatoriamente. 
+ 
+03. Una ventana dedicada al uso estadístico de los resultados obtenidos en el centro de 
+atención. Mínimamente, este detalle debe contener:  
+a. Cantidad de evaluaciones realizadas 
+b. Porcentajes de incidencia de los casos de desarrollo del lenguaje, tomando 
+en cuenta los valores establecidos en el punto 01.  
+c. Rango etario de consultas, con mayor incidencia 
+d. Otros datos que pueden considerar de interés.  
+Fases 
+ 
+Fase 1: Login 
+ 
+Para esta fase deben contemplar lo visto en las clases destinadas al uso de sesiones. 
+Pueden apoyarse en las herramientas de Postman o en las de Thunder Client.  
+La idea no es que creen grandes cantidades de usuarios; simplemente que controlen, 
+mediante estos medios, los permisos que cada usuario puede tener dentro de la plataforma. 
+ 
+Para este proyecto particular, vamos a contemplar dos tipos de usuario:  
+ 
+● Común: Es quien tiene acceso limitado a las funciones básicas. Ver Anexo I 
+● Administrador: Es quien tiene acceso libre a las funciones avanzadas del sistema. 
+Ver Anexo I.  
+ 
+Fase 2: Formularios 
+ 
+La entrada de datos se realizará mediante el diseño e implementación de distintos 
+formularios, mismos que deben contener la información detallada en la propuesta general 
+del proyecto.  
+ 
+Se deben realizar, como mínimo, los siguientes formularios de carga para el rol del usuario 
+común:  
+ 
+● Formulario de registro de evaluaciones 
+● Formulario de historial  
+● Formulario estadístico  
+● Formulario de configuración 
+===== PAGINA 4 =====
+4 
+ 
+ 
+Para el rol del administrador, además de los formularios de usuario común, se debe habilitar 
+un formulario de control de usuarios: 
+ 
+● Formulario de control de usuarios 
+ 
+Fase 3: Interacción  
+ 
+La navegación a través de los formularios debe desarrollarse por medio de un menú o 
+tablero interactivo que permita ingresar a cada una de las opciones de manera sencilla y 
+funcional. Ver Anexo II 
+ 
+Fase 4: Integración  
+ 
+La integración del front-end con el back-end debe efectuarse con las técnicas vistas durante 
+las clases, si bien el uso de las herramientas queda a criterio del desarrollador.  
+ 
+La elección del motor de base de datos para el almacenamiento de la información queda 
+también a libre elección del desarrollador, aunque se sugiere el uso de herramientas 
+orientadas al tiempo de respuesta a fin de optimizar la reacción del sistema ante cada 
+consulta.  
+Anexos 
+Anexo I 
+ 
+El usuario común es el profesional que ingresa a operar el sitio bajo las funcionalidades 
+básicas, a saber:  
+ 
+● Registro de evaluaciones  
+● Búsqueda y gestión del historial de un paciente 
+● Cambios individuales de contraseña 
+● Búsqueda general en panel estadístico  
+ 
+En contraste, el administrador tiene la posibilidad de realizar cualquier tipo de modificación 
+sobre la información referente al sistema y sobre el diseño general de botoneras, menúes, 
+combinación de colores, etc.  
+ 
+Bajo esta lógica, no precisará de permisos adicionales. En este punto se prevé que solo 
+aquel que tenga las credenciales bajo este rol podrá realizar las modificaciones descritas 
+previamente.  
+ 
+Anexo II 
+ 
+La funcionalidad del sistema constituye una parte fundamental del desarrollo integral del 
+proyecto. No deben existir botones sin acción o evento, como tampoco casillas de texto 
+ocultas o deshabilitadas sin ningún propósito aparente en el contexto del programa.  
+===== PAGINA 5 =====
+5 
+ 
+ 
+Asimismo, está funcionalidad debe surgir de la esencia planteada en la propuesta y toda 
+información o elemento que se agregue a la misma tendrá que mantenerse a tono con dicho 
+escenario.  
+ 
+El diseño debe sostener un planteamiento visual uniforme, apuntalado por los principios de 
+diseño y el buen uso de las hojas de estilos en cascada o CSS.  
+ 
+La implementación de buenas técnicas de programación en los módulos desarrollados 
+resulta un punto vital para la correcta escalabilidad del sistema. Recordar el uso de 
+polimorfismo, encapsulamiento, modularidad y otros.  
+Rúbrica 
+ 
+Para alcanzar la acreditación del presente proyecto, se comparte a continuación una tabla 
+que funciona a la vez como hoja de ruta; discriminando fechas y entrega de los avances.  
+ 
+ 
+Evento Fecha de entrega 
+del avance 
+Contenidos 
+esperados 
+Estados de la 
+entrega 
+Fase 1 30/09 Construcción de 
+sesiones y roles 
+Completo - 
+Cualitativo 
+Fase 2 14/10 Implementación de 
+formularios 
+Completo - 
+Cuantitativo 
+Fase 3 28/10 
+Interacción y 
+navegación del 
+programa 
+Completo - 
+Cualitativo 
+Fase 4 03/11 Integración final Completo - 
+Cuantitativo 
+ 
+ 
+Se contempla que en los estados de entrega “Cuantitativos”, el estudiante recibirá una 
+calificación numérica que le permitirá conocer el grado de avance de su proyecto hacia el 
+final del cuatrimestre. Si en alguno de los casos, esa calificación es menor a 6(seis), el 
+estudiante puede recuperar la entrega en la clase posterior inmediata. 
+ 
+Los estados “Cualitativos” corresponden a devoluciones explícitas del docente respecto a 
+los puntos a optimizar dentro de cada fase. La corrección de estos puntos permitirá al 
+estudiante fructificar las oportunidades de mejora en beneficio del programa final.  
+ 
+ 
+ 
+ 

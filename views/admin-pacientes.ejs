@@ -1,0 +1,100 @@
+<%#
+    admin-pacientes.ejs  -  Directorio y Gestión de Pacientes (Solo Administrador)
+    Permite modificar datos del paciente, reasignar especialista o tutor y dar de baja.
+-%>
+<%- include('parciales/_arriba', { titulo: 'Pacientes', pagina: 'Pacientes' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Directorio de pacientes</h1>
+        <p class="subtitulo-pagina">Gestión clínica centralizada: modificar datos filiatorios, reasignar tutor o profesional a cargo.</p>
+    </div>
+</header>
+
+<% if (ok === 'editado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Datos del paciente actualizados exitosamente.</p></div>
+<% } %>
+<% if (ok === 'eliminado') { %>
+    <div class="aviso aviso--exito" role="status"><p>Paciente y su historial asociado eliminados correctamente.</p></div>
+<% } %>
+
+<% if (error === 'no-existe') { %>
+    <div class="aviso aviso--error" role="alert"><p>El paciente seleccionado no existe.</p></div>
+<% } %>
+<% if (error === 'fallo') { %>
+    <div class="aviso aviso--error" role="alert"><p>No se pudo completar la operación solicitada.</p></div>
+<% } %>
+
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Pacientes registrados en el centro</h2>
+            <p class="tarjeta-sub">Total de pacientes: <%= (pacientes || []).length %></p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo" style="padding: 0;">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Fecha de nacimiento</th>
+                        <th>Edad cronológica</th>
+                        <th>Profesional asignado</th>
+                        <th>Tutor / Familia</th>
+                        <th>Evaluaciones</th>
+                        <th style="text-align: right; width: 200px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (!pacientes || pacientes.length === 0) { %>
+                        <tr>
+                            <td colspan="7" class="tabla-vacia">No hay pacientes registrados en el sistema.</td>
+                        </tr>
+                    <% } else { %>
+                        <% pacientes.forEach(p => { %>
+                            <tr>
+                                <td>
+                                    <strong><%= p.nombre %></strong>
+                                </td>
+                                <td class="celda-corta"><%= p.fecha_nacimiento || 'No registrada' %></td>
+                                <td class="celda-corta">
+                                    <span class="indicador" style="font-size: .8rem; padding: 2px 8px;">
+                                        <%= p.edad_anios %> a <%= p.edad_meses %> m
+                                    </span>
+                                </td>
+                                <td><%= p.profesional_nombre || 'Sin asignar' %></td>
+                                <td>
+                                    <% if (p.tutor_nombre) { %>
+                                        <span><%= p.tutor_nombre %></span>
+                                        <small class="texto-apagado" style="display: block; font-size: .75rem;">DNI: <%= p.tutor_dni %></small>
+                                    <% } else { %>
+                                        <span class="texto-apagado">Sin tutor vinculado</span>
+                                    <% } %>
+                                </td>
+                                <td class="celda-corta">
+                                    <strong><%= p.total_evaluaciones %></strong> informe(s)
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: inline-flex; gap: var(--esp-2); align-items: center;">
+                                        <a href="/admin/pacientes/<%= p.id %>/editar" class="btn btn--secundario btn--chico" title="Modificar datos del paciente">
+                                            <svg style="width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; vertical-align: -1px; margin-right: 3px;" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                            Editar
+                                        </a>
+                                        <form action="/admin/pacientes/<%= p.id %>/eliminar" method="post" style="display: inline;" data-confirmar="¿Seguro que querés eliminar al paciente &quot;<%= p.nombre %>&quot; y todas sus evaluaciones?" data-confirmar-titulo="Eliminar paciente">
+                                            <button type="submit" class="btn btn--peligro btn--chico" title="Dar de baja" aria-label="Dar de baja">
+                                                <svg style="width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; vertical-align: -1px;" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</article>
+
+<%- include('parciales/_abajo') %>

@@ -1,0 +1,87 @@
+<%#
+    admin-pacientes-editar.ejs  -  Formulario de Edición de Paciente (Solo Administrador)
+-%>
+<%- include('parciales/_arriba', { titulo: 'Editar Paciente', pagina: 'Pacientes' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Modificar datos del paciente</h1>
+        <p class="subtitulo-pagina">Editá la información personal, reasigná profesional o vinculá a un nuevo tutor.</p>
+    </div>
+</header>
+
+<% if (error) { %>
+    <div class="aviso aviso--error" role="alert">
+        <p><%= error %></p>
+    </div>
+<% } %>
+
+<% if (mensaje) { %>
+    <div class="aviso aviso--exito" role="status">
+        <p><%= mensaje %></p>
+    </div>
+<% } %>
+
+<article class="tarjeta">
+    <header class="tarjeta-cabecera">
+        <div>
+            <h2 class="tarjeta-titulo">Ficha de: <%= paciente.nombre %></h2>
+            <p class="tarjeta-sub">La edad cronológica se recalculará automáticamente al guardar</p>
+        </div>
+    </header>
+    <div class="tarjeta-cuerpo">
+        <form action="/admin/pacientes/<%= paciente.id %>/editar" method="post" class="formulario">
+            <div class="grilla-campos">
+                <div class="campo campo--ancho">
+                    <label for="nombre">Nombre y apellido del paciente *</label>
+                    <input type="text" id="nombre" name="nombre" value="<%= paciente.nombre %>" required
+                           pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$"
+                           title="Solo letras y espacios" maxlength="100">
+                </div>
+
+                <div class="campo">
+                    <label for="fecha_nacimiento">Fecha de nacimiento *</label>
+                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<%= paciente.fecha_nacimiento %>" max="<%= hoy %>" required>
+                </div>
+
+                <div class="campo">
+                    <label>Edad cronológica actual</label>
+                    <div class="caja-edad-calculada">
+                        <span class="icono-edad">✦</span>
+                        <span class="valor-edad"><%= paciente.edad_anios %> años y <%= paciente.edad_meses %> meses</span>
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label for="profesional_id">Profesional a cargo *</label>
+                    <select id="profesional_id" name="profesional_id" required>
+                        <% (profesionales || []).forEach(prof => { %>
+                            <option value="<%= prof.id %>" <%= prof.id === paciente.profesional_id ? 'selected' : '' %>>
+                                <%= prof.nombre %> (<%= prof.username %>)
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="tutor_id">Tutor / Familia vinculada</label>
+                    <select id="tutor_id" name="tutor_id">
+                        <option value="">Sin tutor vinculado</option>
+                        <% (tutores || []).forEach(tut => { %>
+                            <option value="<%= tut.id %>" <%= tut.id === paciente.tutor_id ? 'selected' : '' %>>
+                                <%= tut.nombre %> (DNI: <%= tut.username %>)
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+
+            <div class="acciones-formulario" style="margin-top: var(--esp-5); display: flex; gap: var(--esp-3);">
+                <button type="submit" class="btn btn--primario">Guardar cambios</button>
+                <a href="/admin/pacientes" class="btn btn--secundario">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</article>
+
+<%- include('parciales/_abajo') %>

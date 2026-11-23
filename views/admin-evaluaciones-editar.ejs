@@ -1,0 +1,157 @@
+<%#
+    admin-evaluaciones-editar.ejs  -  Edición completa de Evaluación Clínica (Solo Administrador - Anexo I)
+-%>
+<%- include('parciales/_arriba', { titulo: 'Editar Evaluación', pagina: 'Historial' }) %>
+
+<header class="encabezado-pagina">
+    <div>
+        <h1 class="titulo-pagina">Modificar evaluación clínica</h1>
+        <p class="subtitulo-pagina">Edición y corrección de datos clínicos del informe de <%= evaluacion.paciente_nombre %>.</p>
+    </div>
+</header>
+
+<% if (error) { %>
+    <div class="aviso aviso--error" role="alert">
+        <p><%= error %></p>
+    </div>
+<% } %>
+
+<% if (mensaje) { %>
+    <div class="aviso aviso--exito" role="status">
+        <p><%= mensaje %></p>
+    </div>
+<% } %>
+
+<form action="/admin/evaluaciones/<%= evaluacion.id %>/editar" method="post" enctype="multipart/form-data" class="formulario">
+    <!-- Paso 1: Paciente y Fecha -->
+    <article class="tarjeta" style="margin-bottom: var(--esp-5);">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Datos de la evaluación</h2>
+                <p class="tarjeta-sub">Profesional que la cargó: <%= evaluacion.profesional_nombre %></p>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo">
+            <div class="grilla-campos">
+                <div class="campo campo--ancho">
+                    <label>Paciente</label>
+                    <input type="text" value="<%= evaluacion.paciente_nombre %>" disabled style="background-color: var(--superficie-2); font-weight: 600;">
+                </div>
+                <div class="campo">
+                    <label for="fecha">Fecha de realización *</label>
+                    <input type="date" id="fecha" name="fecha" value="<%= evaluacion.fecha %>" max="<%= hoy %>" required>
+                </div>
+                <div class="campo">
+                    <label for="desarrollo_lenguaje">Desarrollo del lenguaje</label>
+                    <select id="desarrollo_lenguaje" name="desarrollo_lenguaje">
+                        <option value="">Seleccionar una opción...</option>
+                        <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.lenguaje) { %>
+                            <% opcionesClinicas.lenguaje.forEach(opt => { %>
+                                <option value="<%= opt.nombre %>" <%= opt.nombre === evaluacion.desarrollo_lenguaje ? 'selected' : '' %>>
+                                    <%= opt.nombre %>
+                                </option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Paso 2: Desarrollo y Hábitos -->
+    <article class="tarjeta" style="margin-bottom: var(--esp-5);">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Indicadores clínicos</h2>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo">
+            <div class="grilla-campos">
+                <div class="campo campo--ancho">
+                    <label for="motivo_consulta">Motivo de consulta</label>
+                    <textarea id="motivo_consulta" name="motivo_consulta" rows="3"><%= evaluacion.motivo_consulta %></textarea>
+                </div>
+                <div class="campo campo--ancho">
+                    <label for="desarrollo_motor">Desarrollo motor</label>
+                    <textarea id="desarrollo_motor" name="desarrollo_motor" rows="3"><%= evaluacion.desarrollo_motor %></textarea>
+                </div>
+                <div class="campo">
+                    <label for="alimentacion">Alimentación</label>
+                    <select id="alimentacion" name="alimentacion">
+                        <option value="">Seleccionar una opción...</option>
+                        <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.alimentacion) { %>
+                            <% opcionesClinicas.alimentacion.forEach(opt => { %>
+                                <option value="<%= opt.nombre %>" <%= opt.nombre === evaluacion.alimentacion ? 'selected' : '' %>>
+                                    <%= opt.nombre %>
+                                </option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="sueno">Sueño</label>
+                    <select id="sueno" name="sueno">
+                        <option value="">Seleccionar una opción...</option>
+                        <% if (typeof opcionesClinicas !== 'undefined' && opcionesClinicas.sueno) { %>
+                            <% opcionesClinicas.sueno.forEach(opt => { %>
+                                <option value="<%= opt.nombre %>" <%= opt.nombre === evaluacion.sueno ? 'selected' : '' %>>
+                                    <%= opt.nombre %>
+                                </option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Paso 3: Observaciones y Archivos -->
+    <article class="tarjeta" style="margin-bottom: var(--esp-5);">
+        <header class="tarjeta-cabecera">
+            <div>
+                <h2 class="tarjeta-titulo">Juego, tiempo libre y observaciones</h2>
+            </div>
+        </header>
+        <div class="tarjeta-cuerpo">
+            <div class="grilla-campos">
+                <div class="campo campo--ancho">
+                    <label for="tiempo_libre">Tiempo libre</label>
+                    <textarea id="tiempo_libre" name="tiempo_libre" rows="3"><%= evaluacion.tiempo_libre %></textarea>
+                </div>
+                <div class="campo campo--ancho">
+                    <label for="juego">Juego</label>
+                    <textarea id="juego" name="juego" rows="3"><%= evaluacion.juego %></textarea>
+                </div>
+                <div class="campo campo--ancho">
+                    <label for="observaciones">Observaciones generales</label>
+                    <textarea id="observaciones" name="observaciones" rows="4"><%= evaluacion.observaciones %></textarea>
+                </div>
+
+                <% if (imagenes && imagenes.length > 0) { %>
+                    <div class="campo campo--ancho">
+                        <label>Imágenes adjuntas existentes</label>
+                        <div style="display: flex; gap: var(--esp-3); flex-wrap: wrap; margin-top: var(--esp-2);">
+                            <% imagenes.forEach(img => { %>
+                                <a href="<%= img.ruta %>" target="_blank" style="display: block; border: 1px solid var(--linea); border-radius: var(--r-chico); overflow: hidden;">
+                                    <img src="<%= img.ruta %>" alt="Adjunto clínico" style="width: 100px; height: 100px; object-fit: cover;">
+                                </a>
+                            <% }) %>
+                        </div>
+                    </div>
+                <% } %>
+
+                <div class="campo campo--ancho">
+                    <label for="imagenes">Agregar más imágenes adjuntas (opcional)</label>
+                    <input type="file" id="imagenes" name="imagenes" accept="image/*" multiple>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <div class="acciones-formulario" style="display: flex; gap: var(--esp-3); margin-top: var(--esp-5);">
+        <button type="submit" class="btn btn--primario">Guardar modificaciones</button>
+        <a href="/historial" class="btn btn--secundario">Cancelar</a>
+    </div>
+</form>
+
+<%- include('parciales/_abajo') %>
